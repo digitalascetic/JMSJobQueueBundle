@@ -1,5 +1,9 @@
 # CHANGELOG
 
+4.1.5
+-----
+- Doctrine fetchColumn deprecated.
+
 4.1.4
 -----
 - Updated JobManager using Types::JSON instead of Type::JSON_ARRAY or hard coded.
