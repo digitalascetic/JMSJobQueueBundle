@@ -6,6 +6,7 @@ use Doctrine\ORM\EntityManager;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
+use JMS\JobQueueBundle\Entity\Job;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
@@ -23,7 +24,7 @@ class BaseTestCase extends WebTestCase
 
         $kernel = self::bootKernel();
 
-        $this->em = static::$kernel->getContainer()->get('doctrine')->getManagerForClass('JMSJobQueueBundle:Job');
+        $this->em = static::$kernel->getContainer()->get('doctrine')->getManagerForClass(Job::class);
 
         $this->importDatabaseSchema();
 

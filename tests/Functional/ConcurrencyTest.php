@@ -4,6 +4,7 @@ namespace JMS\JobQueueBundle\Tests\Functional;
 
 use Doctrine\ORM\EntityManager;
 use JMS\JobQueueBundle\Entity\Job;
+use RuntimeException;
 use Symfony\Component\Process\Process;
 
 class ConcurrencyTest extends BaseTestCase
@@ -61,7 +62,7 @@ class ConcurrencyTest extends BaseTestCase
 
         foreach ($this->processes as $process) {
             if (!$process->isRunning()) {
-                throw new\ RuntimeException(
+                throw new RuntimeException(
                     sprintf(
                         'The process "%s" exited prematurely:'."\n\n%s\n\n%s",
                         $process->getCommandLine(),
@@ -82,7 +83,7 @@ class ConcurrencyTest extends BaseTestCase
             usleep(2E5);
 
             /** @var EntityManager $em */
-            $em = self::$kernel->getContainer()->get('doctrine')->getManagerForClass('JMSJobQueueBundle:Job');
+            $em = self::$kernel->getContainer()->get('doctrine')->getManagerForClass(Job::class);
 
             $jobCount = $em->createQuery("SELECT COUNT(j) FROM ".Job::class." j WHERE j.state IN (:nonFinalStates)")
                 ->setParameter('nonFinalStates', array(Job::STATE_RUNNING, Job::STATE_NEW, Job::STATE_PENDING))
@@ -94,7 +95,7 @@ class ConcurrencyTest extends BaseTestCase
                 ->setParameter('nonFinalStates', array(Job::STATE_RUNNING, Job::STATE_NEW, Job::STATE_PENDING))
                 ->getResult();
 
-            throw new \RuntimeException('Not all jobs were processed: '."\n\n".implode("\n\n", $jobs));
+            throw new RuntimeException('Not all jobs were processed: '."\n\n".implode("\n\n", $jobs));
         }
     }
 
@@ -107,7 +108,7 @@ class ConcurrencyTest extends BaseTestCase
 
         sleep(2);
         if (!$proc->isRunning()) {
-            throw new \RuntimeException(
+            throw new RuntimeException(
                 sprintf(
                     "Process '%s' failed to start:\n\n%s\n\n%s",
                     $proc->getCommandLine(),

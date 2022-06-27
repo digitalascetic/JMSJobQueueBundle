@@ -1,5 +1,9 @@
 # CHANGELOG
 
+6.0.0
+-----
+- Support Symfony 6.
+
 4.1.5
 -----
 - Doctrine fetchColumn deprecated.
