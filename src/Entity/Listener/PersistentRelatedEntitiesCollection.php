@@ -9,7 +9,6 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Criteria;
 use Doctrine\Common\Collections\Expr\ClosureExpressionVisitor;
 use Doctrine\Common\Collections\Selectable;
-
 use Doctrine\Persistence\ManagerRegistry;
 use JMS\JobQueueBundle\Entity\Job;
 
@@ -131,12 +130,12 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable
     /**
      * ArrayAccess implementation of offsetExists()
      *
-     * @see containsKey()
-     *
      * @param mixed $offset
      * @return bool
+     * @see containsKey()
+     *
      */
-    public function offsetExists($offset)
+    public function offsetExists($offset): bool
     {
         $this->initialize();
 
@@ -146,12 +145,12 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable
     /**
      * ArrayAccess implementation of offsetGet()
      *
-     * @see get()
-     *
      * @param mixed $offset
      * @return mixed
+     * @see get()
+     *
      */
-    public function offsetGet($offset)
+    public function offsetGet($offset): mixed
     {
         $this->initialize();
 
@@ -161,14 +160,14 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable
     /**
      * ArrayAccess implementation of offsetSet()
      *
-     * @see add()
-     * @see set()
-     *
      * @param mixed $offset
      * @param mixed $value
      * @return bool
+     * @see set()
+     *
+     * @see add()
      */
-    public function offsetSet($offset, $value)
+    public function offsetSet($offset, $value): void
     {
         throw new \LogicException('Adding new related entities is not supported after initial creation.');
     }
@@ -176,12 +175,12 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable
     /**
      * ArrayAccess implementation of offsetUnset()
      *
-     * @see remove()
-     *
      * @param mixed $offset
      * @return mixed
+     * @see remove()
+     *
      */
-    public function offsetUnset($offset)
+    public function offsetUnset($offset): void
     {
         throw new \LogicException('unset() is not supported.');
     }
@@ -303,7 +302,7 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable
      *
      * @return integer The number of elements in the collection.
      */
-    public function count()
+    public function count(): int
     {
         $this->initialize();
 
@@ -330,7 +329,7 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable
      * @param mixed $value
      * @return boolean Always TRUE.
      */
-    public function add($value)
+    public function add($value): bool
     {
         throw new \LogicException('Adding new entities is not supported after creation.');
     }
@@ -342,11 +341,11 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable
      *
      * @return boolean TRUE if the collection is empty, FALSE otherwise.
      */
-    public function isEmpty()
+    public function isEmpty(): bool
     {
         $this->initialize();
 
-        return ! $this->entities;
+        return !$this->entities;
     }
 
     /**
@@ -354,7 +353,7 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable
      *
      * @return ArrayIterator
      */
-    public function getIterator()
+    public function getIterator(): \Iterator
     {
         $this->initialize();
 
@@ -401,7 +400,7 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable
         $this->initialize();
 
         foreach ($this->entities as $key => $element) {
-            if ( ! $p($key, $element)) {
+            if (!$p($key, $element)) {
                 return false;
             }
         }
@@ -473,19 +472,19 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable
      * Select all elements from a selectable that match the criteria and
      * return a new collection containing these elements.
      *
-     * @param  Criteria $criteria
+     * @param Criteria $criteria
      * @return Collection
      */
     public function matching(Criteria $criteria)
     {
         $this->initialize();
 
-        $expr     = $criteria->getWhereExpression();
+        $expr = $criteria->getWhereExpression();
         $filtered = $this->entities;
 
         if ($expr) {
-            $visitor  = new ClosureExpressionVisitor();
-            $filter   = $visitor->dispatch($expr);
+            $visitor = new ClosureExpressionVisitor();
+            $filter = $visitor->dispatch($expr);
             $filtered = array_filter($filtered, $filter);
         }
 
@@ -517,7 +516,8 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable
         $con = $this->registry->getManagerForClass(Job::class)->getConnection();
         $entitiesPerClass = array();
         $count = 0;
-        foreach ($con->query("SELECT related_class, related_id FROM jms_job_related_entities WHERE job_id = ".$this->job->getId()) as $data) {
+
+        foreach ($con->executeQuery("SELECT related_class, related_id FROM jms_job_related_entities WHERE job_id = " . $this->job->getId())->fetchAllAssociative() as $data) {
             $count += 1;
             $entitiesPerClass[$data['related_class']][] = json_decode($data['related_id'], true);
         }
@@ -532,16 +532,16 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable
         foreach ($entitiesPerClass as $className => $ids) {
             $em = $this->registry->getManagerForClass($className);
             $qb = $em->createQueryBuilder()
-                        ->select('e')->from($className, 'e');
+                ->select('e')->from($className, 'e');
 
             $i = 0;
             foreach ($ids as $id) {
                 $expr = null;
                 foreach ($id as $k => $v) {
                     if (null === $expr) {
-                        $expr = $qb->expr()->eq('e.'.$k, '?'.(++$i));
+                        $expr = $qb->expr()->eq('e.' . $k, '?' . (++$i));
                     } else {
-                        $expr = $qb->expr()->andX($expr, $qb->expr()->eq('e.'.$k, '?'.(++$i)));
+                        $expr = $qb->expr()->andX($expr, $qb->expr()->eq('e.' . $k, '?' . (++$i)));
                     }
 
                     $qb->setParameter($i, $v);
@@ -554,5 +554,20 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable
         }
 
         $this->entities = $entities;
+    }
+
+    public function findFirst(Closure $p)
+    {
+        $this->initialize();
+
+        $matched = array_filter($this->entities, $p);
+        return reset($matched);
+    }
+
+    public function reduce(Closure $func, mixed $initial = null)
+    {
+        $this->initialize();
+
+        return array_reduce($this->entities, $func, $initial);
     }
 }

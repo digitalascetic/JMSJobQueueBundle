@@ -19,6 +19,6 @@ class NeverEndingCommand extends Command
             sleep(5);
         }
 
-        return 0;
+        return Command::SUCCESS;
     }
 }

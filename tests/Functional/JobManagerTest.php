@@ -132,6 +132,7 @@ class JobManagerTest extends BaseTestCase
 
         $this->assertFalse($this->em->contains($b));
 
+        /** @var Job $reloadedB */
         $reloadedB = $this->jobManager->findJobForRelatedEntity('b', $a);
         $this->assertNotNull($reloadedB);
         $this->assertEquals($b->getId(), $reloadedB->getId());

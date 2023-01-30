@@ -10,7 +10,10 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class ScheduledEveryFewSecondsCommand extends Command implements CronCommand
 {
-    protected static $defaultName = 'scheduled-every-few-seconds';
+    protected function configure()
+    {
+        $this->setName('scheduled-every-few-seconds');
+    }
 
     public function shouldBeScheduled(\DateTime $lastRunAt): bool
     {

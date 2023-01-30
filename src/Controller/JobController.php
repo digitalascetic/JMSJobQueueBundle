@@ -4,6 +4,7 @@ namespace JMS\JobQueueBundle\Controller;
 
 use Doctrine\Common\Util\ClassUtils;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ManagerRegistry;
 use JMS\JobQueueBundle\Entity\Job;
 use JMS\JobQueueBundle\Entity\Repository\JobManager;
 use JMS\JobQueueBundle\View\JobFilter;
@@ -18,6 +19,7 @@ class JobController extends AbstractController
     /**
      * @Route("/", name = "jms_jobs_overview")
      */
+    #[Route("/", name: "jms_jobs_overview")]
     public function overviewAction(Request $request)
     {
         $jobFilter = JobFilter::fromRequest($request);
@@ -29,7 +31,7 @@ class JobController extends AbstractController
 
         $lastJobsWithError = $jobFilter->isDefaultPage() ? $this->getRepo()->findLastJobsWithError(5) : [];
         foreach ($lastJobsWithError as $i => $job) {
-            $qb->andWhere($qb->expr()->neq('j.id', '?'.$i));
+            $qb->andWhere($qb->expr()->neq('j.id', '?' . $i));
             $qb->setParameter($i, $job->getId());
         }
 
@@ -40,7 +42,7 @@ class JobController extends AbstractController
                     $qb->expr()->like('j.args', ':commandQuery')
                 )
             )
-                ->setParameter('commandQuery', '%'.$jobFilter->command.'%');
+                ->setParameter('commandQuery', '%' . $jobFilter->command . '%');
         }
 
         if (!empty($jobFilter->state)) {
@@ -57,7 +59,7 @@ class JobController extends AbstractController
         $jobs = $query->getResult();
 
         return $this->render(
-            '@JMSJobQueue/Job/overview.html.twig',
+            '@JMSJobQueue/job/overview.html.twig',
             array(
                 'jobsWithError' => $lastJobsWithError,
                 'jobs' => array_slice($jobs, 0, $perPage),
@@ -71,6 +73,7 @@ class JobController extends AbstractController
     /**
      * @Route("/{id}", name = "jms_jobs_details")
      */
+    #[Route("/{id}", name: "jms_jobs_details")]
     public function detailsAction(Job $job)
     {
         $relatedEntities = array();
@@ -79,7 +82,7 @@ class JobController extends AbstractController
             $relatedEntities[] = array(
                 'class' => $class,
                 'id' => json_encode(
-                    $this->get('doctrine')->getManagerForClass($class)->getClassMetadata($class)->getIdentifierValues(
+                    $this->container->get('doctrine')->getManagerForClass($class)->getClassMetadata($class)->getIdentifierValues(
                         $entity
                     )
                 ),
@@ -91,9 +94,9 @@ class JobController extends AbstractController
         if ($this->getParameter('jms_job_queue.statistics')) {
             $dataPerCharacteristic = array();
             foreach (
-                $this->get('doctrine')->getManagerForClass(Job::class)->getConnection()->query(
-                    "SELECT * FROM jms_job_statistics WHERE job_id = ".$job->getId()
-                ) as $row
+                $this->container->get('doctrine')->getManagerForClass(Job::class)->getConnection()->executeQuery(
+                    "SELECT * FROM jms_job_statistics WHERE job_id = " . $job->getId()
+                )->fetchAllAssociative() as $row
             ) {
                 $dataPerCharacteristic[$row['characteristic']][] = array(
                     // hack because postgresql lower-cases all column names.
@@ -131,7 +134,7 @@ class JobController extends AbstractController
         }
 
         return $this->render(
-            '@JMSJobQueue/Job/details.html.twig',
+            '@JMSJobQueue/job/details.html.twig',
             array(
                 'job' => $job,
                 'relatedEntities' => $relatedEntities,
@@ -145,6 +148,7 @@ class JobController extends AbstractController
     /**
      * @Route("/{id}/retry", name = "jms_jobs_retry_job")
      */
+    #[Route("/{id}/retry", name: "jms_jobs_retry_job")]
     public function retryJobAction(Job $job)
     {
         $state = $job->getState();
@@ -169,11 +173,23 @@ class JobController extends AbstractController
 
     private function getEm(): EntityManagerInterface
     {
-        return $this->get('doctrine')->getManagerForClass(Job::class);
+        return $this->container->get('doctrine')->getManagerForClass(Job::class);
     }
 
     private function getRepo(): JobManager
     {
-        return $this->get('jms_job_queue.job_manager');
+        return $this->container->get('jms_job_queue.job_manager');
     }
+
+    public static function getSubscribedServices(): array
+    {
+        return array_merge(
+            [
+                'doctrine' => ManagerRegistry::class,
+                'jms_job_queue.job_manager' => JobManager::class
+            ],
+            parent::getSubscribedServices()
+        );
+    }
+
 }

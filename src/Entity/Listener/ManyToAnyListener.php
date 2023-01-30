@@ -1,7 +1,11 @@
 <?php
 
 namespace JMS\JobQueueBundle\Entity\Listener;
-use Doctrine\ORM\Event\LifecycleEventArgs;
+
+use Doctrine\ORM\Event\PostLoadEventArgs;
+use Doctrine\ORM\Event\PostPersistEventArgs;
+use Doctrine\ORM\Event\PreRemoveEventArgs;
+use Doctrine\ORM\Tools\Event\GenerateSchemaEventArgs;
 use Doctrine\Persistence\ManagerRegistry;
 use JMS\JobQueueBundle\Entity\Job;
 
@@ -27,44 +31,44 @@ class ManyToAnyListener
         $this->ref->setAccessible(true);
     }
 
-    public function postLoad(\Doctrine\ORM\Event\LifecycleEventArgs $event)
+    public function postLoad(PostLoadEventArgs $event)
     {
-        $entity = $event->getEntity();
-        if ( ! $entity instanceof \JMS\JobQueueBundle\Entity\Job) {
+        $entity = $event->getObject();
+        if (!$entity instanceof \JMS\JobQueueBundle\Entity\Job) {
             return;
         }
 
         $this->ref->setValue($entity, new PersistentRelatedEntitiesCollection($this->registry, $entity));
     }
 
-    public function preRemove(LifecycleEventArgs $event)
+    public function preRemove(PreRemoveEventArgs $event)
     {
-        $entity = $event->getEntity();
-        if ( ! $entity instanceof Job) {
+        $entity = $event->getObject();
+        if (!$entity instanceof Job) {
             return;
         }
 
-        $con = $event->getEntityManager()->getConnection();
+        $con = $event->getObjectManager()->getConnection();
         $con->executeStatement("DELETE FROM jms_job_related_entities WHERE job_id = :id", array(
             'id' => $entity->getId(),
         ));
     }
 
-    public function postPersist(\Doctrine\ORM\Event\LifecycleEventArgs $event)
+    public function postPersist(PostPersistEventArgs $event)
     {
-        $entity = $event->getEntity();
-        if ( ! $entity instanceof \JMS\JobQueueBundle\Entity\Job) {
+        $entity = $event->getObject();
+        if (!$entity instanceof \JMS\JobQueueBundle\Entity\Job) {
             return;
         }
 
-        $con = $event->getEntityManager()->getConnection();
+        $con = $event->getObjectManager()->getConnection();
         foreach ($this->ref->getValue($entity) as $relatedEntity) {
             $relClass = \Doctrine\Common\Util\ClassUtils::getClass($relatedEntity);
             $relId = $this->registry->getManagerForClass($relClass)->getMetadataFactory()->getMetadataFor($relClass)->getIdentifierValues($relatedEntity);
             asort($relId);
 
-            if ( ! $relId) {
-                throw new \RuntimeException('The identifier for the related entity "'.$relClass.'" was empty.');
+            if (!$relId) {
+                throw new \RuntimeException('The identifier for the related entity "' . $relClass . '" was empty.');
             }
 
             $con->executeStatement("INSERT INTO jms_job_related_entities (job_id, related_class, related_id) VALUES (:jobId, :relClass, :relId)", array(
@@ -75,7 +79,7 @@ class ManyToAnyListener
         }
     }
 
-    public function postGenerateSchema(\Doctrine\ORM\Tools\Event\GenerateSchemaEventArgs $event)
+    public function postGenerateSchema(GenerateSchemaEventArgs $event)
     {
         $schema = $event->getSchema();
 

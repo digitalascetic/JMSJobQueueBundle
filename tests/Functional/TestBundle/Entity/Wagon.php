@@ -9,14 +9,22 @@ use Doctrine\ORM\Mapping as ORM;
  * @ORM\Table(name = "wagons")
  * @ORM\ChangeTrackingPolicy("DEFERRED_EXPLICIT")
  */
+#[ORM\Entity]
+#[ORM\Table(name: "wagons")]
+#[ORM\ChangeTrackingPolicy("DEFERRED_EXPLICIT")]
 class Wagon
 {
     /** @ORM\Id @ORM\GeneratedValue(strategy = "AUTO") @ORM\Column(type = "integer") */
+    #[ORM\Id]
+    #[ORM\GeneratedValue(strategy: "AUTO")]
+    #[ORM\Column(type: "integer")]
     public $id;
 
     /** @ORM\ManyToOne(targetEntity = "Train") */
+    #[ORM\ManyToOne(targetEntity: "Train")]
     public $train;
 
     /** @ORM\Column(type = "string") */
+    #[ORM\Column(type: "string")]
     public $state = 'new';
 }

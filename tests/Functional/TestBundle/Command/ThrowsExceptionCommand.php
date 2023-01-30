@@ -17,6 +17,6 @@ class ThrowsExceptionCommand extends Command
     {
         var_dump('Throwing exception');
         throw new \RuntimeException('Something went wrong.');
-        return 0;
+        return Command::SUCCESS;
     }
 }

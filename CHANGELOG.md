@@ -1,5 +1,9 @@
 # CHANGELOG
 
+6.2.0
+-----
+* Symfony 6.2 compatibility.
+
 6.0.0
 -----
 - Support Symfony 6.

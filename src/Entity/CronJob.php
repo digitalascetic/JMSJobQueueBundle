@@ -9,15 +9,23 @@ use Doctrine\ORM\Mapping as ORM;
  * @ORM\Table(name = "jms_cron_jobs")
  * @ORM\ChangeTrackingPolicy("DEFERRED_EXPLICIT")
  */
+#[ORM\Table(name: "jms_cron_jobs")]
+#[ORM\ChangeTrackingPolicy("DEFERRED_EXPLICIT")]
+#[ORM\Entity]
 class CronJob
 {
     /** @ORM\Id @ORM\Column(type = "integer", options = {"unsigned": true}) @ORM\GeneratedValue(strategy="AUTO") */
-    private $id;
+    #[ORM\Id]
+    #[ORM\Column(type: "integer", options: ["unsigned" => true])]
+    #[ORM\GeneratedValue(strategy: "AUTO")]
+    private ?int $id = null;
 
     /** @ORM\Column(type = "string", length = 200, unique = true) */
-    private $command;
+    #[ORM\Column(type: "string", length: 200, unique: true)]
+    private string $command;
 
     /** @ORM\Column(type = "datetime", name = "lastRunAt") */
+    #[ORM\Column(name: "lastRunAt", type: "datetime")]
     private $lastRunAt;
 
     public function __construct($command)

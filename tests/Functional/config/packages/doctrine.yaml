@@ -4,7 +4,6 @@ doctrine:
         connections:
             default:
                 url: 'sqlite:///%kernel.project_dir%/var/test.db'
-                override_url: true
             test:
                 driver: pdo_sqlite
                 memory: true
@@ -18,7 +17,7 @@ doctrine:
                 mappings:
                     JMSJobQueueBundle:
                         is_bundle: false
-                        type: 'annotation'
+                        type: attribute
                         dir: '%kernel.project_dir%/src/Entity'
                         prefix: 'JMS\JobQueueBundle\Entity'
                         alias: JMSJobQueueBundle
@@ -27,7 +26,7 @@ doctrine:
                 mappings:
                     TestBundle:
                         is_bundle: false
-                        type: 'annotation'
+                        type: attribute
                         dir: '%kernel.project_dir%/tests/Functional/TestBundle/Entity'
                         prefix: 'JMS\JobQueueBundle\Tests\Functional\TestBundle\Entity'
                         alias: TestBundle
