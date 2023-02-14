@@ -1,5 +1,9 @@
 # CHANGELOG
 
+6.2.1
+-----
+* Removed requiresSQLCommentHint from SafeObjectType since is deprecated.
+
 6.2.0
 -----
 * Symfony 6.2 compatibility.

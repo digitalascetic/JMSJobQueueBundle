@@ -49,11 +49,4 @@ class SafeObjectType extends Type
     {
         return 'jms_job_safe_object';
     }
-
-    public function requiresSQLCommentHint(AbstractPlatform $platform)
-    {
-        return true;
-    }
-
-
 }
