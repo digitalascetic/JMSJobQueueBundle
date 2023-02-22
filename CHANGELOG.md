@@ -1,5 +1,9 @@
 # CHANGELOG
 
+6.2.2
+-----
+* Fix CleanUpCommand dql queries.
+
 6.2.1
 -----
 * Removed requiresSQLCommentHint from SafeObjectType since is deprecated.

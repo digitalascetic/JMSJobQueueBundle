@@ -75,7 +75,7 @@ class CleanUpCommand extends Command
             $em->clear();
 
             /** @var Job $job */
-            $job = $em->createQuery("SELECT j FROM jms_jobs j
+            $job = $em->createQuery("SELECT j FROM ".Job::class." j
                                       WHERE j.state = :running AND j.workerName IS NOT NULL AND j.checkedAt < :maxAge
                                                 AND j.id NOT IN (:excludedIds)")
                 ->setParameter('running', Job::STATE_RUNNING)
@@ -147,7 +147,7 @@ class CleanUpCommand extends Command
     private function findExpiredJobs(EntityManagerInterface $em, InputInterface $input)
     {
         $succeededJobs = function (array $excludedIds) use ($em, $input) {
-            return $em->createQuery("SELECT j FROM jms_jobs j WHERE j.closedAt < :maxRetentionTime AND j.originalJob IS NULL AND j.state = :succeeded AND j.id NOT IN (:excludedIds)")
+            return $em->createQuery("SELECT j FROM ".Job::class." j WHERE j.closedAt < :maxRetentionTime AND j.originalJob IS NULL AND j.state = :succeeded AND j.id NOT IN (:excludedIds)")
                 ->setParameter('maxRetentionTime', new \DateTime('-' . $input->getOption('max-retention-succeeded')))
                 ->setParameter('excludedIds', $excludedIds)
                 ->setParameter('succeeded', Job::STATE_FINISHED)
@@ -157,7 +157,7 @@ class CleanUpCommand extends Command
         yield from $this->whileResults($succeededJobs);
 
         $finishedJobs = function (array $excludedIds) use ($em, $input) {
-            return $em->createQuery("SELECT j FROM jms_jobs j WHERE j.closedAt < :maxRetentionTime AND j.originalJob IS NULL AND j.id NOT IN (:excludedIds)")
+            return $em->createQuery("SELECT j FROM ".Job::class." j WHERE j.closedAt < :maxRetentionTime AND j.originalJob IS NULL AND j.id NOT IN (:excludedIds)")
                 ->setParameter('maxRetentionTime', new \DateTime('-' . $input->getOption('max-retention')))
                 ->setParameter('excludedIds', $excludedIds)
                 ->setMaxResults(100)
@@ -166,7 +166,7 @@ class CleanUpCommand extends Command
         yield from $this->whileResults($finishedJobs);
 
         $canceledJobs = function (array $excludedIds) use ($em, $input) {
-            return $em->createQuery("SELECT j FROM jms_jobs j WHERE j.state = :canceled AND j.createdAt < :maxRetentionTime AND j.originalJob IS NULL AND j.id NOT IN (:excludedIds)")
+            return $em->createQuery("SELECT j FROM ".Job::class." j WHERE j.state = :canceled AND j.createdAt < :maxRetentionTime AND j.originalJob IS NULL AND j.id NOT IN (:excludedIds)")
                 ->setParameter('maxRetentionTime', new \DateTime('-' . $input->getOption('max-retention')))
                 ->setParameter('canceled', Job::STATE_CANCELED)
                 ->setParameter('excludedIds', $excludedIds)
