@@ -1,5 +1,9 @@
 # CHANGELOG
 
+4.1.6
+-----
+- Doctrine getManagerForClass deprecated.
+
 4.1.5
 -----
 - Doctrine fetchColumn deprecated.

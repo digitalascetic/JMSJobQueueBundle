@@ -82,7 +82,7 @@ class ConcurrencyTest extends BaseTestCase
             usleep(2E5);
 
             /** @var EntityManager $em */
-            $em = self::$kernel->getContainer()->get('doctrine')->getManagerForClass('JMSJobQueueBundle:Job');
+            $em = self::$kernel->getContainer()->get('doctrine')->getManagerForClass(Job::class);
 
             $jobCount = $em->createQuery("SELECT COUNT(j) FROM ".Job::class." j WHERE j.state IN (:nonFinalStates)")
                 ->setParameter('nonFinalStates', array(Job::STATE_RUNNING, Job::STATE_NEW, Job::STATE_PENDING))
