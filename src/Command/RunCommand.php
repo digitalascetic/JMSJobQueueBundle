@@ -186,7 +186,8 @@ class RunCommand extends Command
             $this->startJobs($workerName, $idleTime, $maxJobs, $restrictedQueues, $queueOptionsDefaults, $queueOptions);
 
             $waitTimeInMs = random_int(500, 1000);
-            usleep($waitTimeInMs * 1E3);
+            $sleepTime = intval($waitTimeInMs * 1E3);
+            usleep($sleepTime);
         }
 
         if ($this->verbose) {

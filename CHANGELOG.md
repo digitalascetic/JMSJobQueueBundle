@@ -1,5 +1,9 @@
 # CHANGELOG
 
+6.2.3
+-----
+* Fix usleep int value.
+
 6.2.2
 -----
 * Fix CleanUpCommand dql queries.
